@@ -416,7 +416,7 @@ install_pecl_extension() {
 
   echo "Installing PECL extension $extension_name..."
 
-  if yes '' | $install_path/bin/pecl install $extension_name; then
+  if printf "\n" | $install_path/bin/pecl install $extension_name; then
     echo "PECL extension $extension_name installed successfully."
   else
     echo "Failed to install $extension_name using pecl. Downloading manually from $extension_get_url..."
@@ -425,7 +425,7 @@ install_pecl_extension() {
     local file_name="$tmp_dir/$extension_name.tgz"
 
     curl -L $extension_get_url -o $file_name || exit 1
-    yes '' | $install_path/bin/pecl install $file_name || exit 1
+    printf "\n" | $install_path/bin/pecl install $file_name || exit 1
 
     echo "PECL extension $extension_name installed successfully."
   fi
