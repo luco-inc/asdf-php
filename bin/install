@@ -27,7 +27,7 @@ install_php() {
     local icu4c_path=$(homebrew_package_path icu4c)
     local krb5_path=$(homebrew_package_path krb5)
     local libedit_path=$(homebrew_package_path libedit)
-    local libxml2_path=$(homebrew_package_path libxml2@2.12.4)
+    local libxml2_path=$(homebrew_package_path libxml2)
     local openssl_path=$(homebrew_package_path openssl@1.1)
 
     if [ -n "$bison_path" ]; then
@@ -107,6 +107,14 @@ install_composer() {
   $bin_path/php -r "if (hash_file('sha384', 'composer-setup.php') === '${expected_signature}') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
   $bin_path/php composer-setup.php --install-dir=$bin_path --filename=composer
   $bin_path/php -r "unlink('composer-setup.php');"
+}
+
+install_pear() {
+  local bin_path=$1/bin
+
+  $bin_path/php -r "copy('http://pear.php.net/go-pear.phar', 'go-pear.phar');"
+  $bin_path/php -d detect_unicode=0 go-pear.phar
+  $bin_path/php -r "unlink('go-pear.phar');"
 }
 
 construct_configure_options() {
@@ -409,6 +417,7 @@ create_composer_auth_file() {
 
 install_php "$ASDF_INSTALL_TYPE" "$ASDF_INSTALL_VERSION" "$ASDF_INSTALL_PATH"
 install_composer "$ASDF_INSTALL_PATH"
+install_pear "$ASDF_INSTALL_PATH"
 
 install_pecl_extension "$ASDF_INSTALL_PATH" "redis" "http://pecl.php.net/get/redis"
 
