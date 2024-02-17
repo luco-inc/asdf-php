@@ -112,9 +112,9 @@ install_composer() {
 install_pickle() {
   local bin_path=$1/bin
 
-  $bin_path/php -r "copy('https://github.com/FriendsOfPHP/pickle/releases/latest/download/pickle.phar', 'pickle.phar');"
+  $bin_path/php -r "copy('http://github.com/FriendsOfPHP/pickle/releases/latest/download/pickle.phar', 'pickle.phar');"
   $bin_path/php -r "exec('chmod +x pickle.phar');"
-  $bin_path/php -r "exec('mv pickle.phar '${bin_path}/pickle');"
+  $bin_path/php -r "exec('mv pickle.phar ${bin_path}/pickle');"
 }
 
 construct_configure_options() {
