@@ -151,8 +151,8 @@ construct_configure_options() {
     --with-xmlrpc \
     --with-zip \
     --with-zlib \
-    --without-snmp \
-    --without-libxml"
+    --with-libxml \
+    --without-snmp"
 
   if [ "$PHP_CONFIGURE_OPTIONS" = "" ]; then
     local configure_options="$(os_based_configure_options) $global_config"
