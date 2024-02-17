@@ -109,12 +109,12 @@ install_composer() {
   $bin_path/php -r "unlink('composer-setup.php');"
 }
 
-install_pear() {
+install_pickle() {
   local bin_path=$1/bin
 
-  $bin_path/php -r "copy('http://pear.php.net/go-pear.phar', 'go-pear.phar');"
-  $bin_path/php -d detect_unicode=0 go-pear.phar
-  $bin_path/php -r "unlink('go-pear.phar');"
+  $bin_path/php -r "copy('https://github.com/FriendsOfPHP/pickle/releases/latest/download/pickle.phar', 'pickle.phar');"
+  $bin_path/php -r "exec('chmod +x pickle.phar');"
+  $bin_path/php -r "exec('mv pickle.phar '${bin_path}/pickle');"
 }
 
 construct_configure_options() {
@@ -385,7 +385,7 @@ install_pecl_extension() {
 
   echo "Installing PECL extension $extension_name..."
 
-  if printf "\n" | $install_path/bin/pecl install $extension_name; then
+  if printf "\n" | $install_path/bin/pickle install $extension_name; then
     echo "PECL extension $extension_name installed successfully."
   else
     echo "Failed to install $extension_name using pecl. Downloading manually from $extension_get_url..."
@@ -394,7 +394,7 @@ install_pecl_extension() {
     local file_name="$tmp_dir/$extension_name.tgz"
 
     curl -L $extension_get_url -o $file_name || exit 1
-    printf "\n" | $install_path/bin/pecl install $file_name || exit 1
+    printf "\n" | $install_path/bin/pickle install $file_name || exit 1
 
     echo "PECL extension $extension_name installed successfully."
   fi
@@ -417,7 +417,7 @@ create_composer_auth_file() {
 
 install_php "$ASDF_INSTALL_TYPE" "$ASDF_INSTALL_VERSION" "$ASDF_INSTALL_PATH"
 install_composer "$ASDF_INSTALL_PATH"
-install_pear "$ASDF_INSTALL_PATH"
+install_pickle "$ASDF_INSTALL_PATH"
 
 install_pecl_extension "$ASDF_INSTALL_PATH" "redis" "http://pecl.php.net/get/redis"
 
