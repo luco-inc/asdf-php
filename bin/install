@@ -385,7 +385,7 @@ install_pecl_extension() {
 
   echo "Installing PECL extension $extension_name..."
 
-  if printf "\n" | $install_path/bin/pickle install $extension_name; then
+  if printf "\n" | $install_path/bin/pickle install -n $extension_name; then
     echo "PECL extension $extension_name installed successfully."
   else
     echo "Failed to install $extension_name using pecl. Downloading manually from $extension_get_url..."
