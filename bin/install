@@ -385,16 +385,16 @@ install_pecl_extension() {
 
   echo "Installing PECL extension $extension_name..."
 
-  if printf "\n" | $install_path/bin/pickle install -n $extension_name; then
+  if $install_path/bin/php $install_path/bin/pickle install -n $extension_name; then
     echo "PECL extension $extension_name installed successfully."
   else
-    echo "Failed to install $extension_name using pecl. Downloading manually from $extension_get_url..."
+    echo "Failed to install $extension_name using pickle. Downloading manually from $extension_get_url..."
 
     local tmp_dir=$(mktemp -d)
     local file_name="$tmp_dir/$extension_name.tgz"
 
     curl -L $extension_get_url -o $file_name || exit 1
-    printf "\n" | $install_path/bin/pickle install $file_name || exit 1
+    $install_path/bin/php $install_path/bin/pickle install -n $file_name || exit 1
 
     echo "PECL extension $extension_name installed successfully."
   fi
