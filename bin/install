@@ -410,7 +410,7 @@ create_composer_auth_file() {
 install_php "$ASDF_INSTALL_TYPE" "$ASDF_INSTALL_VERSION" "$ASDF_INSTALL_PATH"
 install_composer "$ASDF_INSTALL_PATH"
 
-install_pecl_extension "$ASDF_INSTALL_PATH" "redis" "http://pecl.php.net/get/redis"
+# install_pecl_extension "$ASDF_INSTALL_PATH" "redis" "http://pecl.php.net/get/redis"
 
 if [ -z "$GITHUB_OAUTH_TOKEN" ]; then
   echo "Error: GITHUB_OAUTH_TOKEN environment variable is not set."
