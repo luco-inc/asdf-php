@@ -28,7 +28,7 @@ install_php() {
     local krb5_path=$(homebrew_package_path krb5)
     local libedit_path=$(homebrew_package_path libedit)
     local libxml2_path=$(homebrew_package_path libxml2)
-    local openssl_path=$(homebrew_package_path openssl)
+    local openssl_path=$(homebrew_package_path openssl@1.1)
 
     if [ -n "$bison_path" ]; then
       export "PATH=${bison_path}/bin:${PATH}"
@@ -101,9 +101,9 @@ install_php() {
 
 install_composer() {
   local bin_path=$1/bin
-  local expected_signature="$(curl -sL http://composer.github.io/installer.sig)"
+  local expected_signature="$(curl -sL https://composer.github.io/installer.sig)"
 
-  $bin_path/php -r "copy('http://getcomposer.org/installer', 'composer-setup.php');"
+  $bin_path/php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
   $bin_path/php -r "if (hash_file('sha384', 'composer-setup.php') === '${expected_signature}') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
   $bin_path/php composer-setup.php --install-dir=$bin_path --filename=composer
   $bin_path/php -r "unlink('composer-setup.php');"
@@ -151,13 +151,18 @@ construct_configure_options() {
     --with-xmlrpc \
     --with-zip \
     --with-zlib \
-    --with-libxml \
     --without-snmp"
 
   if [ "$PHP_CONFIGURE_OPTIONS" = "" ]; then
     local configure_options="$(os_based_configure_options) $global_config"
   else
     local configure_options="$PHP_CONFIGURE_OPTIONS $global_config"
+  fi
+
+  if [ "${PHP_WITHOUT_PEAR:-no}" != "no" ]; then
+    configure_options="$configure_options --without-pear"
+  else
+    configure_options="$configure_options --with-pear"
   fi
 
   if [ "${PHP_WITHOUT_PDO_PGSQL:-no}" != "no" ]; then
@@ -219,12 +224,16 @@ os_based_configure_options() {
     local freetype_path=$(homebrew_package_path freetype)
     local gettext_path=$(homebrew_package_path gettext)
     local iconv_path=$(homebrew_package_path libiconv)
+    local icu4c_path=$(homebrew_package_path icu4c)
     local jpeg_path=$(homebrew_package_path jpeg)
     local libedit_path=$(homebrew_package_path libedit)
+    local libpng_path=$(homebrew_package_path libpng)
+    local libxml2_path=$(homebrew_package_path libxml2)
     local libzip_path=$(homebrew_package_path libzip)
-    local openssl_path=$(homebrew_package_path openssl)
+    local openssl_path=$(homebrew_package_path openssl@1.1)
     local readline_path=$(homebrew_package_path readline)
     local webp_path=$(homebrew_package_path webp)
+    local zlib_path=$(homebrew_package_path zlib)
 
     # optional
     # if these packages exist they are included in the php compilation
@@ -244,7 +253,7 @@ os_based_configure_options() {
     fi
 
     if [ -n "$freetype_path" ]; then
-      configure_options="$configure_options --with-freetype=$freetype_path"
+      configure_options="$configure_options --with-freetype-dir=$freetype_path"
     else
       export ASDF_PKG_MISSING="freetype"
     fi
@@ -259,22 +268,46 @@ os_based_configure_options() {
       export ASDF_PKG_MISSING="$ASDF_PKG_MISSING gettext"
     fi
 
+    if [ -n "$icu4c_path" ]; then
+      configure_options="$configure_options --with-icu-dir=$icu4c_path"
+    else
+      export ASDF_PKG_MISSING="$ASDF_PKG_MISSING icu4c"
+    fi
+
     if [ -n "$jpeg_path" ]; then
-      configure_options="$configure_options --with-jpeg=$jpeg_path"
+      configure_options="$configure_options --with-jpeg-dir=$jpeg_path"
     else
       export ASDF_PKG_MISSING="$ASDF_PKG_MISSING jpeg"
     fi
 
     if [ -n "$webp_path" ]; then
-      configure_options="$configure_options --with-webp=$webp_path"
+      configure_options="$configure_options --with-webp-dir=$webp_path"
     else
       export ASDF_PKG_MISSING="$ASDF_PKG_MISSING webp"
+    fi
+
+    if [ -n "$libpng_path" ]; then
+      configure_options="$configure_options --with-png-dir=$libpng_path"
+    else
+      export ASDF_PKG_MISSING="$ASDF_PKG_MISSING libpng"
     fi
 
     if [ -n "$openssl_path" ]; then
       configure_options="$configure_options --with-openssl=$openssl_path"
     else
       export ASDF_PKG_MISSING="$ASDF_PKG_MISSING openssl"
+    fi
+
+    if [ -n "$libxml2_path" ]; then
+      configure_options="$configure_options --with-libxml-dir=$libxml2_path"
+    else
+      export ASDF_PKG_MISSING="$ASDF_PKG_MISSING libxml2"
+    fi
+
+    if [ -n "$zlib_path" ]; then
+      configure_options="$configure_options --with-zlib-dir=$zlib_path"
+    else
+      export ASDF_PKG_MISSING="$ASDF_PKG_MISSING zlib"
     fi
 
     if [ -n "$libzip_path" ]; then
@@ -309,12 +342,18 @@ os_based_configure_options() {
   else
     local jpeg_path=$(locate libjpeg.so | awk '{ print length(), $0 | "sort -n" }' | cut -d" " -f2- | head -n 1)
     local libpng_path=$(locate libpng.so | awk '{ print length(), $0 | "sort -n" }' | cut -d" " -f2- | head -n 1)
-    configure_options="--with-openssl --with-curl --with-readline --with-gettext"
+    configure_options="--with-openssl --with-curl --with-zlib --with-readline --with-gettext"
 
     if [ "$jpeg_path" = "" ]; then
       export ASDF_PKG_MISSING="$ASDF_PKG_MISSING jpeg"
     else
-      configure_options="$configure_options --with-jpeg=$jpeg_path"
+      configure_options="$configure_options --with-jpeg-dir=$jpeg_path --with-jpeg"
+    fi
+
+    if [ "$libpng_path" = "" ]; then
+      export ASDF_PKG_MISSING="$ASDF_PKG_MISSING libpng"
+    else
+      configure_options="$configure_options --with-png-dir=$libpng_path --with-png"
     fi
   fi
 
@@ -410,7 +449,7 @@ create_composer_auth_file() {
 install_php "$ASDF_INSTALL_TYPE" "$ASDF_INSTALL_VERSION" "$ASDF_INSTALL_PATH"
 install_composer "$ASDF_INSTALL_PATH"
 
-# install_pecl_extension "$ASDF_INSTALL_PATH" "redis" "http://pecl.php.net/get/redis"
+install_pecl_extension "$ASDF_INSTALL_PATH" "redis" "http://pecl.php.net/get/redis"
 
 if [ -z "$GITHUB_OAUTH_TOKEN" ]; then
   echo "Error: GITHUB_OAUTH_TOKEN environment variable is not set."
